@@ -1,0 +1,27 @@
+<!--
+  Heavily modified version of Blowfish's layouts/_default/_markup/render-image.html.
+  Purpose of modifications is to support custom gallery_glob shortcode and custom watermark partial.
+  Much of the original functionality from Blowfish's render-image.html has been split out to the img partial.
+-->
+
+{{- $disableImageOptimization := .Page.Site.Params.disableImageOptimization | default false }}
+{{- $url := urls.Parse .Destination }}
+{{- $altText := .Text }}
+{{- $caption := .Title }}
+
+<figure>
+{{- if findRE "^https?" $url.Scheme }}
+  {{- $wmImg := partial "watermark" (dict "image" $url.String "onlyImage" true) }}
+    <img class="my-0 rounded-md" loading="lazy" src="{{ $wmImg.RelPermalink }}" alt="{{ $altText }}" />
+{{- else }}
+  {{ partial 
+    "img"
+    (dict
+      "src" $url.String
+      "class" "my-0 rounded-md"
+      "alt" $altText
+      "page" $.Page)
+  }}
+{{- end }}
+{{ with $caption }}<figcaption>{{ . | markdownify }}</figcaption>{{ end }}
+</figure>

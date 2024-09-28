@@ -1,0 +1,21 @@
+<!-- Shortcode for rendering an image, relies on img partial -->
+
+{{ $isFromGallery := false }}
+
+{{ with .Parent }}
+  {{ warnf .Name }}
+  {{ if eq .Name "gallery" }}
+    {{ $isFromGallery = true }}
+  {{ end }}
+{{ end }}
+
+{{- partial 
+    "img"
+    (dict
+      "src" (.Get "src")
+      "class" (.Get "class")
+      "alt" (.Get "alt")
+      "watermark" (default true (.Get "watermark"))
+      "page" .Page
+      "nofig" $isFromGallery)
+}}

@@ -1,0 +1,29 @@
+<!-- Mostly borrowed from hugo blowfish theme's gallery & carousel shortcodes -->
+
+{{ $disableImageOptimization := .Page.Site.Params.disableImageOptimization | default false }}
+
+{{ $id := delimit (slice "gallery" (partial "functions/uid.html" .)) "-" }}
+{{ $page := .Page.Resources }}
+{{ $class := .Get "class" }}
+{{ $caption := .Get "caption" }}
+{{ $images := slice }}
+
+{{ $imagesArray := $page.Match (.Get "images") }}
+<figure>
+  <div id="{{ $id }}" class="gallery">
+    {{ range $imagesArray }}
+      {{ partial 
+        "img"
+        (dict
+          "src" .Name
+          "class" $class
+          "gallery" true
+          "page" $.Page
+          "nofig" true)
+      }}
+    {{ end }}
+  </div>
+  {{ if $caption }}
+    <figcaption style="text-align: center;">{{ $caption | markdownify }}</figcaption>
+  {{ end }}
+</figure>

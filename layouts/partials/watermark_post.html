@@ -1,0 +1,38 @@
+{{- $image := .image }}
+{{- $class := .class }}
+
+{{- $logo := (resources.Get "watermark.png") }}
+{{- $watermarked := false }}
+
+{{- if and $image $logo }}
+<!-- Skip watermarking if image name contains "watermark" -->
+  {{- if not (strings.Contains (strings.ToLower $image) "watermark") }}
+    {{- $watermarked = true }}
+
+    {{- $size := math.Round (mul $image.Height 0.25) }}
+    {{- $size = cond (ge $size 150.0) ($size) 150.0 }}
+    {{- $logo = $logo.Resize (printf "%.0fx png" $size) }}
+
+    {{- $cropRatio := math.Div 5.0 3.0 }}
+    {{- $croppedHeight := math.Div $image.Width $cropRatio }}
+
+    {{- if lt $image.Height $croppedHeight }}
+      <!-- If the image height is already smaller than the crop ratio, use the actual height -->
+      {{- $croppedHeight = $image.Height }} 
+    {{- end }}
+
+    {{- $cropOffset := math.Div (math.Sub $image.Height $croppedHeight) 2.0 }}
+
+    <!-- Adjust the watermark to appear just above the bottom of the cropped height -->
+    <!-- 10px padding from the bottom -->
+    {{- $y := math.Add $cropOffset (math.Sub $croppedHeight $logo.Height 10) }}
+
+    {{- $x := math.Div (math.Sub $image.Width $logo.Width) 2.0 }}
+
+    {{- $image = $image.Filter (images.Overlay $logo $x $y) }}
+  {{- end }}
+  <div class="{{ $class }}" style="background-image:url({{ $image.RelPermalink }});" data-auto-watermarked="{{ $watermarked }}"></div>
+
+{{- else }}
+  {{ errorf "watermark_post: Image or logo missing. Context: %+v" . }}
+{{- end }}

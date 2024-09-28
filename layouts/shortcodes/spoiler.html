@@ -1,0 +1,21 @@
+<div class="max-w-lg mx-auto p-8">
+  {{ if .IsNamedParams }}
+    <details class="p-6" {{ with .Get "open" }}open="{{ . }}"{{ else }}{{ end }}>
+      <summary class="text-sm leading-6 font-semibold select-none cursor-pointer">
+        {{ with .Get "title" }}{{ . | markdownify }}{{ end }}
+      </summary>
+      <div class="text-sm leading-6">
+        {{ .Inner | markdownify }}
+      </div>
+    </details>
+  {{ else }}
+  <details class="p-6" {{ with .Get 1 }}open="{{ . }}"{{ else }}{{ end }}>
+    <summary class="text-sm leading-6 font-semibold select-none cursor-pointer">
+      {{ with .Get 0 }}{{ . | markdownify }}{{ end }}
+    </summary>
+    <div class="text-sm leading-6">
+      {{ .Inner | markdownify }}
+    </div>
+  </details>
+  {{ end }}
+</div>

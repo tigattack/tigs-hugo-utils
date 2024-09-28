@@ -1,0 +1,26 @@
+{{- $image := .image }}
+{{- $class := .class }}
+{{- $alt := .alt }}
+{{- $onlyImage := default false .onlyImage }}
+
+{{- $logo := (resources.Get "watermark.png") }}
+{{- $watermarked := false }}
+
+{{- if and $image $logo }}
+  <!-- Skip watermarking if image name contains "watermark" or class contains "no-wm" -->
+  {{- if not (or (strings.Contains (strings.ToLower $image) "watermark") (strings.Contains (strings.ToLower $class) "no-wm")) }}
+    {{- $watermarked = true }}
+
+    {{- $size := math.Round (mul $image.Height 0.25) }}
+    {{- $size = cond (ge $size 150.0) ($size) 150.0 }}
+    {{- $logo = $logo.Resize (printf "%.0fx png" $size) }}
+
+    {{- $x := div (sub $image.Width $logo.Width) 2 }}
+    {{- $y := div (sub $image.Height $logo.Height) 1.025 }}
+
+    {{- $image = $image.Filter (images.Overlay $logo $x $y) }}
+  {{- end }}
+  {{ if $onlyImage }}{{ return $image }}{{ else }}<img alt="{{ $alt }}" src="{{ $image.RelPermalink }}" class="{{ $class }}" data-auto-watermarked="{{ $watermarked }}"/>{{ end }}
+{{- else }}
+  {{ warnf "watermark: Image or logo missing. Context: %+v" . }}
+{{- end }}

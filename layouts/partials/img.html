@@ -1,0 +1,64 @@
+<!--
+  Partial for rendering an image.
+  Passes through optional Hugo image optimisation and my custom watermark partial.
+  Based on Blowfish's layouts/_default/_markup/render-image.html
+-->
+
+{{ $disableImageOptimization := .Page.Site.Params.disableImageOptimization | default false }}
+
+{{ $src := .src -}}
+{{ $class := .class -}}
+{{ $alt := .alt -}}
+
+{{ $page := .page }}
+{{ $image := $page.Resources.GetMatch (printf "*%s*" $src) }}
+
+{{ $watermark := default true (.watermark) -}}
+{{ $nofig := .nofig }}
+
+{{ with $image }}
+  {{ if not $nofig }}<figure>{{ end }}
+  {{ if or $disableImageOptimization (eq .MediaType.SubType "svg")}}
+    {{ if eq $watermark false }}
+      <img class="{{ $class }}" src="{{ $src }}"/>
+    {{ else }}
+      {{ $wmImg := partial "watermark" (dict "image" $image "onlyImage" true) }}
+      <img class="{{ $class }}" src="{{ $wmImg.RelPermalink }}"/>
+    {{ end }}
+  {{ else }}
+    {{ with $image }}
+      {{ if not $watermark }}
+        <img
+          class="{{ $class }}"
+          loading="lazy"
+          srcset="
+          {{ (.Resize "330x").RelPermalink }} 330w,
+          {{ (.Resize "660x").RelPermalink }} 660w,
+          {{ (.Resize "1024x").RelPermalink }} 1024w,
+          {{ (.Resize "1320x").RelPermalink }} 2x"
+          src="{{ (.Resize "660x").RelPermalink }}"
+          {{ with $alt }}alt="{{ . }}"{{ end }}
+        />
+      {{ else }}
+        {{ $wmImg := partial "watermark" (dict "image" $image "onlyImage" true) }}
+        {{ with $wmImg }}
+          <img
+            class="{{ $class }}"
+            loading="lazy"
+            srcset="
+            {{ (.Resize "330x").RelPermalink }} 330w,
+            {{ (.Resize "660x").RelPermalink }} 660w,
+            {{ (.Resize "1024x").RelPermalink }} 1024w,
+            {{ (.Resize "1320x").RelPermalink }} 2x"
+            src="{{ (.Resize "660x").RelPermalink }}"
+            {{ with $alt }}alt="{{ . }}"{{ end }}
+          />
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+  {{ if not $nofig }}</figure>{{ end }}
+{{ else }}
+  {{ warnf "img: Could not find image at %+v in page %+v" $src $page.RelPermalink }}
+  <img alt="{{ $alt }}" src="{{ $src }}" class="{{ .class }}"/>
+{{ end }}
